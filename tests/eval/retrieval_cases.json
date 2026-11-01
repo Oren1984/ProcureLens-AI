@@ -1,0 +1,21 @@
+{
+  "relevant": [
+    {"q": "Can the supplier invoice goods that were not yet delivered or accepted?", "supplier": "SUP-0001", "expect": ["supplier-agreement-nordwind.md", "partial-delivery-rules.md"]},
+    {"q": "May rejected goods be invoiced?", "supplier": "SUP-0003", "expect": ["supplier-agreement-kestrel.md", "supplier-agreement-nordwind.md"]},
+    {"q": "Is a price increase on the invoice allowed without an amended purchase order?", "supplier": "SUP-0002", "expect": ["supplier-agreement-alba.md", "procurement-policy.md"]},
+    {"q": "What price deviation tolerance applies before approval is needed?", "supplier": null, "expect": ["procurement-policy.md"]},
+    {"q": "How are multiple partial deliveries against one order line handled?", "supplier": null, "expect": ["partial-delivery-rules.md"]},
+    {"q": "What can we do when delivery is more than ten days late?", "supplier": "SUP-0003", "expect": ["supplier-agreement-kestrel.md"]},
+    {"q": "Freight charged separately without a purchase order line", "supplier": "SUP-0002", "expect": ["supplier-agreement-alba.md"]},
+    {"q": "When should an invoice discrepancy be escalated to the category buyer?", "supplier": null, "expect": ["invoice-discrepancy-procedure.md"]},
+    {"q": "Who decides on exceptions and can software approve payments?", "supplier": null, "expect": ["procurement-policy.md"]},
+    {"q": "Invoices in a foreign currency", "supplier": null, "expect": ["procurement-policy.md"]}
+  ],
+  "no_evidence": [
+    {"q": "What is the employee travel reimbursement limit for hotels?", "supplier": null},
+    {"q": "How many vacation days do new employees get?", "supplier": "SUP-0001"},
+    {"q": "Which cloud provider hosts our email servers?", "supplier": null},
+    {"q": "What is the recipe for the cafeteria lasagna?", "supplier": "SUP-0002"},
+    {"q": "When does the office parking garage close on weekends?", "supplier": null}
+  ]
+}

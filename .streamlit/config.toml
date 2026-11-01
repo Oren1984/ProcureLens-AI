@@ -1,0 +1,30 @@
+# Streamlit settings for ProcureLens AI. Security-relevant defaults are stated explicitly.
+[server]
+# Inside the container Streamlit listens on all interfaces; Compose publishes it only on the
+# host loopback (127.0.0.1:8089). For a non-Docker run use --server.address 127.0.0.1.
+address = "0.0.0.0"
+port = 8501
+headless = true
+enableXsrfProtection = true
+enableCORS = true
+# Knowledge uploads are additionally limited in the application (KNOWLEDGE_MAX_UPLOAD_BYTES).
+maxUploadSize = 1
+fileWatcherType = "none"
+runOnSave = false
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+showErrorDetails = "type"
+
+[logger]
+level = "warning"
+
+[theme]
+base = "light"
+primaryColor = "#1f4e79"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f3f5f8"
+textColor = "#1c2430"

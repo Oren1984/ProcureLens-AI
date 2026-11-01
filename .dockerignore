@@ -1,0 +1,15 @@
+.git
+.github
+.venv
+.env
+*.env.local
+backups
+e2e-artifacts
+infra
+tests
+docs/images
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+**/*.egg-info

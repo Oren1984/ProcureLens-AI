@@ -1,0 +1,28 @@
+# Secrets and runtime data — never commit
+.env
+*.env.local
+backups/
+*.dump
+procurelens-credentials.txt
+
+# Python / tooling
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Terraform state and caches
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl.bak
+crash.log
+
+# Local verification artefacts
+e2e-artifacts/

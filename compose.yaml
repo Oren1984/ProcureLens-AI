@@ -1,0 +1,107 @@
+# ProcureLens AI — local Docker Compose stack.
+#   First run:  ./scripts/init-env.sh && docker compose up -d --build
+#   UI:         http://localhost:8089  (published on 127.0.0.1 only)
+#   Optional AI: docker compose --profile ai up -d   (see docs/OPERATIONS.md)
+name: procurelens
+
+x-db-name: &db_name ${POSTGRES_DB:-procurelens}
+
+x-app-env: &app_env
+  # Runtime role: least privilege (no DDL, append-only audit). Owner credentials are NOT here.
+  DATABASE_URL: postgresql+psycopg://${APP_DB_USER:-procurelens_app}:${APP_DB_PASSWORD:?APP_DB_PASSWORD must be set in .env}@db:5432/${POSTGRES_DB:-procurelens}
+  PROCURELENS_PUBLIC_URL: http://localhost:8089
+  PROCURELENS_PRIVATE_DIR: /run/procurelens-private
+  PROCURELENS_BASE_CURRENCY: ${PROCURELENS_BASE_CURRENCY:-EUR}
+  SESSION_IDLE_MINUTES: ${SESSION_IDLE_MINUTES:-30}
+  SESSION_ABSOLUTE_HOURS: ${SESSION_ABSOLUTE_HOURS:-8}
+  ERPNEXT_BASE_URL: ${ERPNEXT_BASE_URL:-}
+  ERPNEXT_API_KEY: ${ERPNEXT_API_KEY:-}
+  ERPNEXT_API_SECRET: ${ERPNEXT_API_SECRET:-}
+  ERPNEXT_SYNC_FROM: ${ERPNEXT_SYNC_FROM:-}
+  OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+  OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b}
+  OLLAMA_TIMEOUT_SECONDS: ${OLLAMA_TIMEOUT_SECONDS:-150}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+x-hardening: &hardening
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.2-pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-procurelens_owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      POSTGRES_DB: *db_name
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # No published port: the database is reachable only on the internal Compose network.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # One-shot: migrations, runtime-role grants, first-run accounts and demo seed. Idempotent:
+  # on later starts it only re-applies migrations/grants and never recreates credentials.
+  init:
+    image: procurelens-app:1.0.0
+    build: .
+    command: ["python", "-m", "procurelens.cli", "bootstrap"]
+    environment:
+      <<: *app_env
+      MIGRATION_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-procurelens_owner}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-procurelens}
+    volumes:
+      - type: bind
+        source: ${PROCURELENS_PRIVATE_DIR:?PROCURELENS_PRIVATE_DIR must be set in .env}
+        target: /run/procurelens-private
+    depends_on:
+      db:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    <<: *hardening
+    restart: "no"
+
+  app:
+    image: procurelens-app:1.0.0
+    build: .
+    environment: *app_env
+    ports:
+      - "127.0.0.1:8089:8501"
+    depends_on:
+      db:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+      - /tmp
+    <<: *hardening
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:0.40.13
+    profiles: ["ai"]
+    volumes:
+      - ollama:/root/.ollama
+    # Not published to the host; only the app reaches it on the internal network.
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  ollama:

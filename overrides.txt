@@ -1,0 +1,5 @@
+# Dependency overrides applied when locking (uv pip compile --override overrides.txt).
+# fastembed 0.7.4 caps pillow <12, but pillow 11.x has HIGH/CRITICAL advisories fixed in 13.0.0
+# (pip-audit / Trivy). ProcureLens uses only fastembed's *text* models; pillow is imported but
+# not used on any code path. The override is re-verified by the test suite and retrieval eval.
+pillow>=13.0.0
