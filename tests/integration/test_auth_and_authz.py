@@ -201,3 +201,13 @@ def test_runtime_role_cannot_alter_audit_trail(container, admin, migrated_db):
         c.execute(text("UPDATE audit_events SET reason = 'x'"))
     app.dispose()
     owner.dispose()
+
+
+def test_reset_with_given_password_for_public_demo_account(container, viewer):
+    t, _ = container.auth.login("demo", "Demo-Test-Pass-1")
+    pw = container.auth.reset_password("demo", actor="test", password="procurelens-demo")
+    assert pw == "procurelens-demo"
+    with pytest.raises(AuthenticationError):
+        container.auth.validate(t)
+    _, p = container.auth.login("demo", "procurelens-demo")
+    assert p.role == Role.DEMO_VIEWER

@@ -162,3 +162,15 @@ def test_log_redaction():
     rec.api_secret = "abc"
     out = JsonFormatter().format(rec)
     assert "hunter2" not in out and "abc" not in out
+
+
+def test_demo_password_default_override_and_minimum(monkeypatch):
+    from procurelens import cli
+
+    monkeypatch.delenv("PROCURELENS_DEMO_PASSWORD", raising=False)
+    assert cli.demo_password() == "procurelens-demo"
+    monkeypatch.setenv("PROCURELENS_DEMO_PASSWORD", "another-demo-pass")
+    assert cli.demo_password() == "another-demo-pass"
+    monkeypatch.setenv("PROCURELENS_DEMO_PASSWORD", "short")
+    with pytest.raises(SystemExit):
+        cli.demo_password()

@@ -2,7 +2,7 @@
 
 | Symptom | What to check |
 |---|---|
-| *Sign-in failed* | Initial credentials are in the private credentials file written at first start. After 5 failures in 15 minutes sign-in is temporarily blocked for that account. Reset with `docker compose run --rm init python -m procurelens.cli reset-password --user admin`. |
+| *Sign-in failed* | The demo login is `demo` / `procurelens-demo` unless your administrator changed it. The admin password is in the private credentials file written at first start. After 5 failures in 15 minutes sign-in is temporarily blocked for that account. Reset with `docker compose run --rm init python -m procurelens.cli reset-password --user admin` (or `--user demo`). |
 | Signed out after a browser refresh | Expected: the session lives in the browser tab's server-side state. Sign in again. Idle timeout 30 min, absolute 8 h. |
 | Stale-data warning | *Integrations & knowledge → Synchronisation* shows the last success, failures and the error. Fix the cause and sync again; previous data stays intact. |
 | ERPNext *auth* error | API key or secret wrong, or the integration user lacks read permission. |

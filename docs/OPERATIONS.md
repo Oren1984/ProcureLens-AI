@@ -15,7 +15,7 @@ docker compose ps                     # app + db "healthy"; init "exited (0)"
 
 1. waits for PostgreSQL and applies Alembic migrations, which enable pgvector;
 2. creates or updates the least-privilege runtime role and re-applies its grants;
-3. on the first run only, creates `admin` and `demo` with generated passwords and writes `procurelens-credentials.txt` (mode 0600) to `PROCURELENS_PRIVATE_DIR`;
+3. on the first run only, creates `admin` with a generated password and `demo` with the documented public demo password (`PROCURELENS_DEMO_PASSWORD`, default `procurelens-demo`), and writes `procurelens-credentials.txt` (mode 0600) to `PROCURELENS_PRIVATE_DIR`;
 4. on the first run only, seeds the synthetic demo dataset and indexes `knowledge/`.
 
 The app container runs as UID 10001 with a read-only root filesystem, no capabilities and no owner database credentials. It publishes **only** `127.0.0.1:8089 → 8501`. PostgreSQL publishes no port.

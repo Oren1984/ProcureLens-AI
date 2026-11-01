@@ -162,9 +162,9 @@ class AuthService:
             )
             return user.id
 
-    def reset_password(self, username: str, *, actor: str) -> str:
-        """Set a new generated password and revoke all of the user's sessions."""
-        password = generate_password()
+    def reset_password(self, username: str, *, actor: str, password: str | None = None) -> str:
+        """Set a new password (generated unless given) and revoke all of the user's sessions."""
+        password = password or generate_password()
         now = self.clock()
         with self.db.transaction() as s:
             user = s.scalar(select(User).where(User.username == username.lower()))

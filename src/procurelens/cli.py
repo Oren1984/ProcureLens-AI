@@ -44,6 +44,20 @@ log = logging.getLogger("procurelens.cli")
 SYSTEM = Principal(user_id=0, username="system", role=Role.ADMIN, session_id=0)
 CRED_FILE = "procurelens-credentials.txt"
 ADMIN_USER, DEMO_USER = "admin", "demo"
+# The read-only demo account has a deliberately public, documented password (README) so
+# reviewers can try the synthetic demo. It grants no write access and no live-data access.
+# The administrator password is always randomly generated and private.
+DEMO_DEFAULT_PASSWORD = "procurelens-demo"  # noqa: S105 - intentionally public demo login
+DEMO_PASSWORD_MIN_LENGTH = 12
+
+
+def demo_password() -> str:
+    pw = os.environ.get("PROCURELENS_DEMO_PASSWORD", "").strip() or DEMO_DEFAULT_PASSWORD
+    if len(pw) < DEMO_PASSWORD_MIN_LENGTH:
+        sys.exit(
+            f"PROCURELENS_DEMO_PASSWORD must be at least {DEMO_PASSWORD_MIN_LENGTH} characters."
+        )
+    return pw
 
 
 def _owner_url() -> str:
@@ -127,7 +141,7 @@ def cmd_bootstrap(_args) -> None:
         c.auth.create_user(ADMIN_USER, Role.ADMIN, pw, actor="bootstrap")
         created[ADMIN_USER] = pw
     if not have_demo:
-        pw = generate_password()
+        pw = demo_password()
         c.auth.create_user(DEMO_USER, Role.DEMO_VIEWER, pw, actor="bootstrap")
         created[DEMO_USER] = pw
     if created:
@@ -171,10 +185,19 @@ def cmd_bootstrap(_args) -> None:
 def cmd_reset_password(args) -> None:
     settings = load_settings()
     c = build_container(settings, database_url=_owner_url())
-    pw = c.auth.reset_password(args.user, actor="cli")
-    path = write_credentials(settings.private_dir, {args.user.lower(): pw}, settings.public_url)
+    user = args.user.lower()
+    if user == DEMO_USER:
+        pw = c.auth.reset_password(user, actor="cli", password=demo_password())
+        write_credentials(settings.private_dir, {user: pw}, settings.public_url)
+        print(
+            "Demo password set to the documented demo password (see README). "
+            "All demo sessions were revoked."
+        )
+        return
+    pw = c.auth.reset_password(user, actor="cli")
+    path = write_credentials(settings.private_dir, {user: pw}, settings.public_url)
     print(
-        f"Password for '{args.user}' reset. All of its sessions were revoked. "
+        f"Password for '{user}' reset. All of its sessions were revoked. "
         f"New password written to {path}"
     )
 

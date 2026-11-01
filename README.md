@@ -53,12 +53,23 @@ Requirements: Docker with Compose v2, Bash (Git Bash on Windows) and ~2 GB of di
 docker compose up -d --build   # app + PostgreSQL/pgvector; a one-shot `init` runs migrations and bootstrap
 ```
 
-Open **http://localhost:8089**.
+Open **<http://localhost:8089>**.
 
-**First sign-in.** On the first start, `init` generates strong passwords for the administrator (`admin`) and a read-only demo account (`demo`). It writes them only to `procurelens-credentials.txt` in your private directory (`PROCURELENS_PRIVATE_DIR` in `.env`), with owner-only permissions. Passwords are never logged. Later restarts keep existing data and never recreate credentials or reseed demo data. To reset a password:
+### Demo login (read-only)
+
+| Username | Password |
+|---|---|
+| `demo` | `procurelens-demo` |
+
+This password is public on purpose so reviewers can try the app. The demo account can only browse the synthetic demo data and prepared results: it cannot sync, import, reindex, change settings, act on exceptions or see live ERPNext data, and the server rejects any attempt to. Set your own demo password with `PROCURELENS_DEMO_PASSWORD` in `.env` (at least 12 characters) before the first start. On an existing installation, change the variable and run `reset-password --user demo` (below).
+
+### Administrator login
+
+On the first start, `init` generates a strong random password for `admin`. It is written only to `procurelens-credentials.txt` in your private directory (`PROCURELENS_PRIVATE_DIR` in `.env`), with owner-only permissions, and is never logged or committed. Later restarts keep existing data and never recreate credentials or reseed demo data. To reset a password:
 
 ```bash
-docker compose run --rm init python -m procurelens.cli reset-password --user admin
+docker compose run --rm init python -m procurelens.cli reset-password --user admin   # new random password → private file
+docker compose run --rm init python -m procurelens.cli reset-password --user demo    # restores the documented demo password
 ```
 
 On networks that inspect TLS, pass a CA bundle to the build only: `BUILD_CA_FILE=/path/ca.pem ./scripts/start.sh` (it is mounted as a build secret and not stored in the image).
